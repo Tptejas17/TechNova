@@ -7,12 +7,6 @@ pipeline{
 	}
 	
 	stages{
-		stage('Checkout'){
-			steps {
-				//Checkout the code from GitHub
-				git 'https://github.com/Tptejas17/TechNova.git'
-			}
-		}
 	
 		stage('Build Docker Image'){
 			steps {
