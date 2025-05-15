@@ -1,5 +1,10 @@
 pipeline{
 	agent any
+
+	triggers {
+        	githubPush()
+    	}
+
 	environment{
 		DOCKER_IMAGE = 'technova-inventory'
 		DOCKER_TAG = 'latest'
