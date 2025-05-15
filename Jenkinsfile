@@ -41,7 +41,7 @@ pipeline{
 			steps {
 				script{
 				// Run docker container
-				sh 'docker run -d -p 8081:80 $DOCKER_IMAGE:$DOCKER_TAG'
+				sh 'docker run -d --name $CONTAINER_NAME -p 8081:80 $DOCKER_IMAGE:$DOCKER_TAG'
 				}
 			}
 		}
