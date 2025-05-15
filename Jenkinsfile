@@ -1,52 +1,62 @@
-pipeline{
-	agent any
+pipeline {
+    agent any
 
-	triggers {
-        	githubPush()
-    	}
+    triggers {
+        githubPush()
+    }
 
-	environment{
-		DOCKER_IMAGE = 'technova-inventory'
-		DOCKER_TAG = 'latest'
-		CONTAINER_NAME = 'technova-container'
-	}
-	
-	stages{
-	
-		
-		stage('Cleanup old container') {
-			steps {
-                		script {
-                    			// Stop and remove any existing container with the same name
-                    			sh '''
-                        		if [ \$(docker ps -q -f name=$CONTAINER_NAME) ]; then
-                            		docker stop $CONTAINER_NAME
-                            		docker rm $CONTAINER_NAME
-                        		fi
-                    			'''
-                		}
-            		}
-        	}
+    environment {
+        DOCKER_IMAGE = 'technova-inventory'
+        DOCKER_TAG = 'latest'
+        CONTAINER_NAME = 'technova-container'
+        PORT = '8081'
+    }
 
-		stage('Build Docker Image'){
-			steps {
-				script{
-					// Build the Docker image
-					sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
-				}
-			}
-		}
+    stages {
 
-		stage('Run Docker Image') {
-			steps {
-				script{
-				// Run docker container
-				sh 'docker run -d --name $CONTAINER_NAME -p 8081:80 $DOCKER_IMAGE:$DOCKER_TAG'
-				}
-			}
-		}
+        stage('Cleanup old container') {
+            steps {
+                script {
+                    sh '''
+                    echo "Checking for container named $CONTAINER_NAME..."
+                    # Stop and remove container by name
+                    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+                        echo "Stopping and removing existing container named $CONTAINER_NAME"
+                        docker stop $CONTAINER_NAME || true
+                        docker rm $CONTAINER_NAME || true
+                    fi
 
-	}
+                    echo "Checking for containers using port $PORT..."
+                    # Find container using port and stop/remove it
+                    USED_CONTAINER=$(docker ps -aq --filter "publish=$PORT")
+                    if [ "$USED_CONTAINER" ]; then
+                        echo "Port $PORT is in use by container ID: $USED_CONTAINER. Stopping and removing it..."
+                        docker stop $USED_CONTAINER || true
+                        docker rm $USED_CONTAINER || true
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                }
+            }
+        }
+
+        stage('Run Docker Image') {
+            steps {
+                script {
+                    sh 'docker run -d --name $CONTAINER_NAME -p $PORT:80 $DOCKER_IMAGE:$DOCKER_TAG'
+                }
+            }
+        }
+
+    }
 }
 
-		
+      
+	
