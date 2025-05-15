@@ -8,7 +8,7 @@ pipeline{
 	environment{
 		DOCKER_IMAGE = 'technova-inventory'
 		DOCKER_TAG = 'latest'
-		
+		CONTAINER_NAME = 'technova-container'
 	}
 	
 	stages{
